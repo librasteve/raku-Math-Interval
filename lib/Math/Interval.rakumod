@@ -2,7 +2,7 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 #viz. https://en.wikipedia.org/wiki/Interval_arithmetic
 #viz. https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html
 
-### This is a noddy implementation of Interval Arithmetic by overloading raku Range operators 
+##  A noddy implementation of Interval Arithmetic using raku Ranges
 ### No provision is made for Rounded Interval Arithmetic
 ### No provision is made for [disjoint] multi-intervals
 ### No provision is made for complex intervals
@@ -50,14 +50,3 @@ multi infix:</>( Range:D $x, Range:D $y ) is export {
 
     $x * inverse($y)
 }
-
-## TODOs
-## Additional arithmetic operations
-# power (even / odd)
-# log / exp
-# trig
-## 
-
-## Comparison operators 
-## Set operators 
-## need class Interval does Range {...} ?

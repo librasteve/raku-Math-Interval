@@ -1,31 +1,25 @@
 {
-  "name": "App::Crag",
-  "description": "calculator using raku grammars",
-  "version": "0.0.11",
+  "name": "Math::Interval",
+  "description": "A noddy implementation of Interval Arithmetic using raku Ranges",
+  "version": "0.0.1",
   "perl": "6.d",
   "authors": [
     "librasteve"
   ],
   "auth": "zef:librasteve",
-  "depends": [
-    "Physics::Measure",
-    "Physics::Constants",
-    "Physics::Navigation",
-    "Time::Duration::Parser"
-  ],
+  "depends": [],
   "build-depends": [],
   "test-depends": [],
   "provides": {
-    "App::Crag": "lib/App/Crag.rakumod"
+    "Math::Interval": "lib/Math/Interval.rakumod"
   },
   "resources": [],
   "license": "Artistic-2.0",
   "tags": [
-    "App",
-    "CLI",
-    "Physics",
-    "Navigation"
+    "Interval",
+    "Math",
+    "Range"
   ],
   "api": "1",
-  "source-url": "git://github.com/librasteve/raku-App-Crag.git"
+  "source-url": "git://github.com/librasteve/raku-Math-Interval.git"
 }
