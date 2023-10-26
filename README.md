@@ -5,7 +5,7 @@
 - viz. [https://en.wikipedia.org/wiki/Interval_arithmetic](https://en.wikipedia.org/wiki/Interval_arithmetic)
 - viz. [https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html)
 
-### This is a noddy implementation of Interval Arithmetic using raku class Range 
+### A noddy implementation of Interval Arithmetic using raku class Range 
 - No provision is made for Rounded Interval Arithmetic
 - No provision is made for [disjoint] multi-intervals
 - No provision is made for complex intervals
