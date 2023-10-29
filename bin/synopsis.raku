@@ -33,21 +33,22 @@ say $r1 + $r8;    #2..7
 my Interval $i1 .= new(range => 2.5^..^8.5);    #3.5..7.5
 my Interval $i2 .= new(2..^8);                  #2e0..7e0
 #my Interval $i3 .= new('a'..'z');               #dies
-#my Interval $i4 .= new(1,2);                    #dies
-say $i1, $i2;
+my Interval $i4 .= new(1,2);                    #dies
+my Interval $i5 .= new($i1);                  #2e0..7e0
+
+say $i1, $i2, $i4, $i5;
 
 #say $i1.minmax;                                  #dies
 
-my @methods = <min max bounds infinite raku gist fmt Range>;
-{ say "$^method makes: ", $i1."$^method"() } for @methods;
-
-
-say $i1.Range.WHAT;
-say $i1.WHAT;           #Range WRONG!!
+#my @methods = <min max bounds infinite raku gist fmt Range>;
+#{ say "$^method makes: ", $i1."$^method"() } for @methods;
+#say $i1.Range.WHAT;
+#say $i1.WHAT;           #(Range) WRONG!!
 
 my $i3 = $i1 + $i2;
 dd $i3;
-say ($i1 + $i2).WHAT;
 
-#ACCEPTS
+say $i1 ~~ Rangy;
+
+#ACCEPTS Set operations
 

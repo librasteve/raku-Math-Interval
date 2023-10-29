@@ -8,16 +8,17 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 ### No provision is made for complex intervals
 
 class Interval {...}
-subset Rangy of Any where * ~~ Range|Interval;
+subset Rangy of Any is export where * ~~ Range|Interval;
 
 #| Interval is a subclass of Range where endpoints are always Numeric
 #|  [in anticipation of Rounded Interval Arithmetic]
 #|  [https://en.wikipedia.org/wiki/Interval_arithmetic#Rounded_interval_arithmetic]
 #| No cats ears, not Positional, not Iterable
-#| Interval methods may work with Junctions of Intervals (tbd)
+#| Some Interval methods may work with Junctions of Intervals (tbd)
 class Interval is export {
-#    try Range(Interval) maybe
-    has Range $.range handles <min max minmax bounds infinite raku gist fmt>;
+
+    has Range $.range
+        handles <min max minmax bounds infinite raku gist fmt>; #not WHICH of?
 
     submethod TWEAK {
         my ($x1, $x2) = $!range.min, $!range.max;
@@ -26,25 +27,20 @@ class Interval is export {
         $x1 += $!range.excludes-min;
         $x2 -= $!range.excludes-max;
 
-        #| coerce to Numeric
+        #| coerce endpoints
         $!range = $x1.Numeric..$x2.Numeric
     }
 
-    multi method new( Range:D $range ) {               # Positional -> Named
-        Interval.new: :$range
+    multi method new( Range:D(Interval:D) :$range ) {           # Named -> Range
+        self.bless: :$range
     }
 
-    multi method new( Interval:D $interval ) {         # Positional -> Named
-        Interval.new: range => $interval.Range
+    multi method new( Rangy:D $range ) {                        # Positional -> Named
+        self.new: :$range
     }
 
-    multi method new( Interval:D :$range ) {           # Named
-        Interval.new: range => $range.Range
-    }
-
-    multi method new( Numeric:D $x1, Numeric:D $x2 ) {
-        die ".new requires both endpoints to be Num" unless $x1 & $x2 ~~ Num;
-        Interval.new: $x1.Num..$x2.Num
+    multi method new( Numeric:D() $x1, Numeric:D() $x2 ) {      # Endpoints
+        self.new: $x1..$x2
     }
 
     method Range { $!range }
@@ -58,7 +54,7 @@ class Interval is export {
 }
 
 ## Rangy op Rangy operators
-## return an Interval (which can be coerced back to a Range)
+## always return an Interval
 
 multi infix:<+>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     my (\x1, \x2) = ($x.min, $x.max);
