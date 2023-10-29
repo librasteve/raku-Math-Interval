@@ -7,30 +7,83 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 ### No provision is made for [disjoint] multi-intervals
 ### No provision is made for complex intervals
 
-multi infix:<+>( Range:D $x, Range:D $y ) is export {
+class Interval {...}
+subset Rangy of Any where * ~~ Range|Interval;
+
+#| Interval is a subclass of Range where endpoints are always Numeric
+#|  [in anticipation of Rounded Interval Arithmetic]
+#|  [https://en.wikipedia.org/wiki/Interval_arithmetic#Rounded_interval_arithmetic]
+#| No cats ears, not Positional, not Iterable
+#| Interval methods may work with Junctions of Intervals (tbd)
+class Interval is export {
+#    try Range(Interval) maybe
+    has Range $.range handles <min max minmax bounds infinite raku gist fmt>;
+
+    submethod TWEAK {
+        my ($x1, $x2) = $!range.min, $!range.max;
+
+        #| clean out cats ears
+        $x1 += $!range.excludes-min;
+        $x2 -= $!range.excludes-max;
+
+        #| coerce to Numeric
+        $!range = $x1.Numeric..$x2.Numeric
+    }
+
+    multi method new( Range:D $range ) {               # Positional -> Named
+        Interval.new: :$range
+    }
+
+    multi method new( Interval:D $interval ) {         # Positional -> Named
+        Interval.new: range => $interval.Range
+    }
+
+    multi method new( Interval:D :$range ) {           # Named
+        Interval.new: range => $range.Range
+    }
+
+    multi method new( Numeric:D $x1, Numeric:D $x2 ) {
+        die ".new requires both endpoints to be Num" unless $x1 & $x2 ~~ Num;
+        Interval.new: $x1.Num..$x2.Num
+    }
+
+    method Range { $!range }
+
+#    method WHAT { Interval }                           #FIXME dont work!
+
+    method FALLBACK( $name ) {
+        die "method .$name is not provided for class Interval"
+
+    }
+}
+
+## Rangy op Rangy operators
+## return an Interval (which can be coerced back to a Range)
+
+multi infix:<+>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     my (\x1, \x2) = ($x.min, $x.max);
     my (\y1, \y2) = ($y.min, $y.max);
 
-    (x1 + y1) .. (x2 + y2) 
+    Interval.new: (x1 + y1) .. (x2 + y2)
 }
 
-multi infix:<->( Range:D $x, Range:D $y ) is export {
+multi infix:<->( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     my (\x1, \x2) = ($x.min, $x.max);
     my (\y1, \y2) = ($y.min, $y.max);
 
-    (x1 - y2) .. (x2 - y1) 
+    Interval.new: (x1 - y2) .. (x2 - y1)
 }
 
-multi infix:<*>( Range:D $x, Range:D $y ) is export {
+multi infix:<*>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     my @x = ($x.min, $x.max);
     my @y = ($y.min, $y.max);
 
     my @prods = @x X* @y;                   # make cross-prod, ie. x0*y0,x1*y0...
 
-    @prods.min .. @prods.max
+    Interval.new: @prods.min .. @prods.max
 }
 
-multi infix:</>( Range:D $x, Range:D $y ) is export {
+multi infix:</>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
 
     sub inverse($y) {                       # make inverse, ie. 1/[y1..y2] 
         my (\y1, \y2) = ($y.min, $y.max);
@@ -48,5 +101,7 @@ multi infix:</>( Range:D $x, Range:D $y ) is export {
         }
     }
 
-    $x * inverse($y)
+    Interval.new: $x * inverse($y)
 }
+
+
