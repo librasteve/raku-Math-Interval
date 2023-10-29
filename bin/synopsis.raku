@@ -40,8 +40,8 @@ say $i1, $i2, $i4, $i5;
 
 #say $i1.minmax;                                  #dies
 
-#my @methods = <min max bounds infinite raku gist fmt Range>;
-#{ say "$^method makes: ", $i1."$^method"() } for @methods;
+my @methods = <min max bounds infinite raku gist fmt Range>;
+{ say "$^method makes: ", $i1."$^method"() } for @methods;
 #say $i1.Range.WHAT;
 #say $i1.WHAT;           #(Range) WRONG!!
 
@@ -50,5 +50,9 @@ dd $i3;
 
 say $i1 ~~ Rangy;
 
-#ACCEPTS Set operations
+say +$i1;
+say ($i1.Range + 3).Interval;
+
+#cmp/ACCEPTS
+#Set operations
 

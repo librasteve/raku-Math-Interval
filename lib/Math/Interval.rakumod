@@ -10,6 +10,8 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 class Interval {...}
 subset Rangy of Any is export where * ~~ Range|Interval;
 
+
+
 #| Interval is a subclass of Range where endpoints are always Numeric
 #|  [in anticipation of Rounded Interval Arithmetic]
 #|  [https://en.wikipedia.org/wiki/Interval_arithmetic#Rounded_interval_arithmetic]
@@ -24,10 +26,11 @@ class Interval is export {
         my ($x1, $x2) = $!range.min, $!range.max;
 
         #| clean out cats ears
+        #| true is 1, false is 0
         $x1 += $!range.excludes-min;
         $x2 -= $!range.excludes-max;
 
-        #| coerce endpoints
+        #| discourage Str endpoints
         $!range = $x1.Numeric..$x2.Numeric
     }
 
@@ -43,7 +46,7 @@ class Interval is export {
         self.new: $x1..$x2
     }
 
-    method Range { $!range }
+    method Range( --> Range ) { $!range }
 
 #    method WHAT { Interval }                           #FIXME dont work!
 
@@ -52,6 +55,18 @@ class Interval is export {
 
     }
 }
+
+## Rangy op Scalar
+
+#prefix + too
+# nope - elems will not resolve
+
+#multi infix:<+>( Interval:D $i, Scalar:D $s --> Interval ) is export {
+#    my (\x1, \x2) = ($x.min, $x.max);
+#    my (\y1, \y2) = ($y.min, $y.max);
+#
+#    Interval.new: (x1 + y1) .. (x2 + y2)
+#}
 
 ## Rangy op Rangy operators
 ## always return an Interval
