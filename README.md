@@ -58,7 +58,8 @@ which leads to these design points:
 ## TODOs
 ### Additional arithmetic operations
 - [ ] divide over zero -> disjoint multi-intervals
-- [ ] 
+- [ ] ~~ and cmp
+- [ ] Set operators
 - [ ] power (even / odd)
 - [ ] log / exp
 - [ ] trig

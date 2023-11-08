@@ -41,8 +41,8 @@ class Interval is Range is export {
         $x1 += $!range.excludes-min;                            #\ True=1/
         $x2 -= $!range.excludes-max;                            #/ False=0
 
-        #| discourage Str endpoints
-        $!range = $x1.Numeric..$x2.Numeric
+        #| reject Str endpoints
+        $!range = $x1.Numeric..$x2.Numeric;
     }
 
     multi method new( Range:D(Interval:D) :$range ) {           # Named -> Range
@@ -58,6 +58,12 @@ class Interval is Range is export {
     }
 
     method Range( --> Range ) { $!range }
+
+    multi method ACCEPTS(Interval:D: Real $x ) {
+        $!range.ACCEPTS: $x
+    }
+
+#    iamerejh - add ACCEPTS Range   [make ddt prerequisite (if it works for Jintervals
 
     method FALLBACK( $name ) {
         die "method .$name is not provided for class Interval"

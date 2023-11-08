@@ -33,7 +33,7 @@ say $r1 + $r8;    #2..7
 my Interval $i1 .= new(range => 2.5^..^8.5);    #3.5..7.5
 my Interval $i2 .= new(2..^8);                  #2e0..7e0
 #my Interval $i3 .= new('a'..'z');               #dies
-my Interval $i4 .= new(1,2);                    #dies
+my Interval $i4 .= new(1,2);                    #1..2
 my Interval $i5 .= new($i1);                  #2e0..7e0
 
 say $i1, $i2, $i4, $i5;
@@ -45,17 +45,28 @@ my @methods = <min max bounds infinite raku gist fmt Range>;
 #say $i1.Range.WHAT;
 #say $i1.WHAT;           #(Range) WRONG!!
 
-my $i3 = $i1 + $i2;
-dd $i3;
+my $i7 = $i1 + $i2;
+dd $i7;
 
-my $i4 = $i1 + 4;
-say $i4;
+my $i6 = $i1 + 4;
+say $i6;
 
 say $i1 ~~ Rangy;
 
 #say +$i1;    #fails
 say ($i1.Range + 3).Interval;
 
-#cmp/ACCEPTS
-#Set operations
+#say $i1.Set;           #fails - Sets must contain discrete items and Intervals are continuous
+say $i1.Range.Set;       #coerce to Range first and then use Set operators
+say $r1.Set;
+
+
+say 2 ~~ $r2;
+say 0 ~~ $r2;
+
+say 2 ~~ $i2;
+say 0 ~~ $i2;
+
+#iamerejh
+
 
