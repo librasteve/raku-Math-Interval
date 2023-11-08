@@ -1,0 +1,23 @@
+use v6.d;
+use Test;
+
+#viz. http://www.math.com/tables/algebra/basicidens.htm
+
+my (\a,\b,\c) = 1,2,3;
+
+ok a + 0 == a,                      'Additive Identity';
+ok a + (-a) == 0,                   'Additive Inverse';
+ok (a + b) + c == a + (b + c),      'Associative of Addition';
+ok a + b == b + a,                  'Commutative of Addition';
+ok a - b == a + (-b),               'Definition of Subtraction';
+
+ok a * 0 == 0,                      'Multiplication times 0';
+ok a * 1 == a,                      'Multiplicative Identity';
+ok a * (1/a) == 1,                  'Multiplicative Inverse (a (!=) 0)';
+ok (a * b) * c == a * (b * c),      'Associative of Multiplication';
+ok a * b == b * a,                  'Commutative of Multiplication';
+ok a*(b + c) == a*b + a*c,          'Distributive Law';
+ok a / b == a * (1/b),              'Definition of Division';
+
+
+done-testing;

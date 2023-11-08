@@ -1,0 +1,53 @@
+#!/usr/bin/env raku
+#t/01-rop.rakutest
+#TESTALL$ prove6 ./t      [from root]
+use lib '../lib';
+use Test;
+plan 17;
+
+use Math::Interval;
+
+my $r1 = 1..2;
+my $r2 = 2..4;
+my $r3 = -2..4;
+my $r4 = 0..4;
+my $r5 = -4..0;
+my $r6 = 3..*;
+my $r8 = '1'..'5';
+
+### Check Range op Range
+
+ok (($r1 + $r2) cmp (3..6)) ~~ Same,                'R+R';
+ok (($r2 - $r1) cmp (0..3)) ~~ Same,                'R-R';      #yes, really, check the viz
+ok (($r1 * $r2) cmp (2..8)) ~~ Same,                'R*R';
+ok (($r2 / $r1) cmp (1.0..4.0)) ~~ Same,            'R/R';
+
+### Check Divide Corner Cases
+
+dies-ok { $r2 / $r3 },                              'R/R dies-ok';
+
+ok (($r2 / $r4) cmp (0.5..Inf)) ~~ Same,            'R/R y1=0';
+ok (($r2 / $r5) cmp (-Inf..-0.5)) ~~ Same,          'R/R y2=0';
+ok (($r2 / $r6) cmp (0e0..<4/3>)) ~~ Same,          'R/R y2=*';
+
+ok (($r1 + $r8) cmp (2..7)) ~~ Same,                'R+R Str';
+
+### Regression Tests
+
+### Check Range op Real
+
+ok (($r1 + 1) cmp (2..3)) ~~ Same,                  'R+N';
+ok (($r1 - 2) cmp (-1..0)) ~~ Same,                 'R-N';
+ok (($r1 * 3e0) cmp (3e0..6e0)) ~~ Same,            'R*N';
+ok (($r1 / <4>) cmp (0.25..0.5)) ~~ Same,           'R/N';
+
+### Check Real op Range
+
+ok ((1 + $r1) cmp (2..3)) ~~ Same,                  'N+R';
+ok ((2 - $r1) cmp 0) ~~ Same,                       'N-R';      #coerces Range to .elems
+ok ((3e0 * $r1) cmp (3e0..6e0)) ~~ Same,            'N*R';
+ok ((<4> / $r1) cmp 2) ~~ Same,                     'N/R';      #coerces Range to .elems
+
+
+#done-testing
+

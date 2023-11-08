@@ -1,0 +1,60 @@
+#!/usr/bin/env raku
+#t/02-iop.rakutest
+#TESTALL$ prove6 ./t      [from root]
+use lib '../lib';
+use Test;
+
+plan 20;
+
+use Math::Interval;
+
+my Interval $i1 .= new: 1..2;
+my Interval $i2 .= new: 2..4;
+my Interval $i3 .= new: -2..4;
+my Interval $i4 .= new: 0..4;
+my Interval $i5 .= new: -4..0;
+my Interval $i6 .= new: 3..*;
+my Interval $i8 .= new: '1'..'5';
+
+ok $i1 ~~ Interval,                                 '.new';
+ok (($i1+ $i2) ~~ Interval),                        '~~';
+dies-ok { +$i1 },                                   '+I dies-ok';
+say $i1.Int;
+say $i1.Str;
+
+### Check Range op Range
+
+ok (($i1 + $i2) cmp (3..6)) ~~ Same,                'I+I';
+ok (($i2 - $i1) cmp (0..3)) ~~ Same,                'I-I';      #yes, really, check the viz
+ok (($i1 * $i2) cmp (2..8)) ~~ Same,                'I*I';
+ok (($i2 / $i1) cmp (1.0..4.0)) ~~ Same,            'I/I';
+
+#### Check Divide Corner Cases
+
+dies-ok { $i2 / $i3 },                              'I/I dies-ok';
+
+ok (($i2 / $i4) cmp (0.5..Inf)) ~~ Same,            'I/I y1=0';
+ok (($i2 / $i5) cmp (-Inf..-0.5)) ~~ Same,          'I/I y2=0';
+ok (($i2 / $i6) cmp (0e0..<4/3>)) ~~ Same,          'I/I y2=*';
+
+ok (($i1 + $i8) cmp (2..7)) ~~ Same,                'I+I Str';
+
+#### Regression Tests
+
+### Check Interval op Real
+
+ok (($i1 + 1) cmp (2..3)) ~~ Same,                  'I+N';
+ok (($i1 - 2) cmp (-1..0)) ~~ Same,                 'I-N';
+ok (($i1 * 3e0) cmp (3e0..6e0)) ~~ Same,            'I*N';
+ok (($i1 / <4>) cmp (0.25..0.5)) ~~ Same,           'I/N';
+
+#### Check Real op Interval
+
+ok ((1 + $i1) cmp (2..3)) ~~ Same,                  'N+I';
+dies-ok { 2 - $i1 },                                'N-I dies-ok';  # Interval cannot be iterated / no .elems
+ok ((3e0 * $i1) cmp (3e0..6e0)) ~~ Same,            'N*I';
+dies-ok { <4> / $i1 },                              'N/I dies-ok';  # Interval cannot be iterated / no .elems
+
+
+#done-testing
+

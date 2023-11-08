@@ -48,9 +48,12 @@ my @methods = <min max bounds infinite raku gist fmt Range>;
 my $i3 = $i1 + $i2;
 dd $i3;
 
+my $i4 = $i1 + 4;
+say $i4;
+
 say $i1 ~~ Rangy;
 
-say +$i1;
+#say +$i1;    #fails
 say ($i1.Range + 3).Interval;
 
 #cmp/ACCEPTS
