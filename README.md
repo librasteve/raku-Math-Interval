@@ -18,7 +18,7 @@ We split the use cases of the built-in Range type as follows:
 
 ### class Range
 
-- ```x .. $y where $x & $y ~~ Any```
+- ```$x1..$x2 where $x1 & $x2 ~~ Any```
 - to generate lists of consecutive numbers or strings
 - to act as a matcher to check if a integer or string is within a
 - certain range
@@ -26,23 +26,60 @@ We split the use cases of the built-in Range type as follows:
 - does Positional, does Iterable
 - arithmetic +-*/ operators with scalars are distributed to endpoints like Junction with 2 elems, then each endpoint coerced to .Int
 - prefix '+' special cased to .elems
-- operator ```~~``` special cased to 'is contained by'
-- coercer like .Num returns an Interval
-- .Interval coerces endpoints to .Rat returns an Interval
+- use ```~~``` to check containment
+  - ```say 3 ~~ 1..12;```    #True   x1 <= a <= x2
+  - ```say 2..3 ~~ 1..12;``` #True   x1 >= y1 && x2 <= y2
+  - ```say 1..12 ~~ 2..3;``` #False  (y must contain x)
+- cmp works for Range op Range (for Real op Range .elems is used)
+  - ```(0..2) cmp (0..12)``` #Less   x1 < x2 || x1 == x2 && y1 < y2
+  - ```(0..2) cmp (0..2)```  #Same   x1 == x2 && y1 == y2
+  - ```(1..2) cmp (0..12)``` #More   x1 > x2 || x1 == x2 && y1 > y2
+
 
 ### class Interval
 
-- ```$x .. $y where $ & $y ~~ Real and $x | $y !~~ Int```
+- ```$x1..$x2 where $x1 & $x2 ~~ Real && $x2 >= $x1```
 - to act as a matcher to check if a Numeric is within a certain range
-- endpoints are Real, no cats ears
+- endpoints are Real, no cats ears, x2 >= x1
 - not Iterable nor Positional
 - arithmetic +-*/ operators with scalars are distributed to endpoints like Junction with 2 elems
 - Rangy op Rangy --> Interval arithmetic +-*/ operators implemented
 - Rangy ** N --> Interval operator implemented
 - prefix '+' will fail (Interval has no .elems)
-- operator ```~~``` special cased to 'is contained by'
+- use ```~~``` to check containment
+  - ```say 3 ~~ 1..12;```    #True   x1 <= a <= x2
+  - ```say 2..3 ~~ 1..12;``` #True   x1 >= y1 && x2 <= y2
+  - ```say 1..12 ~~ 2..3;``` #False  (y must contain x)
 - numeric cmp (<, <=, ==, !=, >, >=) work for Real op Rangy, Rangy op Real, Rangy op Rangy, when Range op Range, we check both endpoints to detect overlap in legal values so 1.0..2.0 < 2.0..3.0 False, 1.0..2.0 <= 2.0..3.0 True
-- coercer like .Int or .Str returns a Range
+
+
+Set & cmp operations:
+
+
+compare (unlike Range, overlapping intervals are not ordered and yet not equal)
+```(1..2) cmp (3..4)``` #Less    x2 < y1
+```(1..2) cmp (2..4)``` #Nil     x2 !< y1                  !!    
+```(0..2) cmp (0..2)``` #Same    x1 == x2 && y1 == y2
+```(0..3) cmp (0..2)``` #Nil     x1 !> y2                  !!
+```(3..4) cmp (1..2)``` #More    x1 > y2
+
+Set operations
+```#say $i1.Set;```            #fails - in general Sets contain discrete items and Intervals are continuous
+```say $i1.Range.Set;```       #coerce to Range first and then use all Set operators (which auto-coerce that to Set)
+
+However, the following two Set operations are supported for Intervals:
+
+
+intersection (&) ∩
+```∅```    if x1 > y2 || y1 > x2
+```max(x1,y1)..min(x2,y2)```
+
+union (|) ∪ (of two intersecting intervals)
+```min(x1,y1)..max(x2,y2)```
+
+other
+```(3..4).abs```    #4   (always x2)
+```(3..4).width```  #1   (x2-x1)
 
 which leads to these design points:
 - ```class Interval is Range {...}```
@@ -54,12 +91,11 @@ which leads to these design points:
 - ```.Range``` coerces to Range
 - ```subset Rangy of Any is export where * ~~ Range|Interval;```
 
-
 ## TODOs
 ### Additional arithmetic operations
-- [ ] divide over zero -> disjoint multi-intervals
 - [ ] ~~ and cmp
 - [ ] Set operators
+- [ ] divide over zero -> disjoint multi-intervals
 - [ ] power (even / odd)
 - [ ] log / exp
 - [ ] trig

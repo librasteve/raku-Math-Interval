@@ -56,8 +56,8 @@ say $i1 ~~ Rangy;
 #say +$i1;    #fails
 say ($i1.Range + 3).Interval;
 
-#say $i1.Set;           #fails - Sets must contain discrete items and Intervals are continuous
-say $i1.Range.Set;       #coerce to Range first and then use Set operators
+#say $i1.Set;           #fails - in general Sets contain discrete items and Intervals are continuous
+say $i1.Range.Set;       #coerce to Range first and then use all Set operators
 say $r1.Set;
 
 
@@ -66,6 +66,9 @@ say 0 ~~ $r2;
 
 say 2 ~~ $i2;
 say 0 ~~ $i2;
+
+say 2.4 ~~ $i1;
+say 3.5 ~~ $i1;
 
 #iamerejh
 

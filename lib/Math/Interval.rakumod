@@ -37,6 +37,9 @@ class Interval is Range is export {
     submethod TWEAK {
         my ($x1, $x2) = $!range.min, $!range.max;
 
+        #| enforce X2 > x1
+        die "x2 >= x1 is required for Interval endpoints" unless $x2 >= $x1;
+
         #| clean out cats ears
         $x1 += $!range.excludes-min;                            #\ True=1/
         $x2 -= $!range.excludes-max;                            #/ False=0
