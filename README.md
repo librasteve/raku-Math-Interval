@@ -34,6 +34,7 @@ We split the use cases of the built-in Range type as follows:
   - ```(0..2) cmp (0..12)``` #Less   x1 < x2 || x1 == x2 && y1 < y2
   - ```(0..2) cmp (0..2)```  #Same   x1 == x2 && y1 == y2
   - ```(1..2) cmp (0..12)``` #More   x1 > x2 || x1 == x2 && y1 > y2
+- Set operations work for Any op Range and Range op Range by auto coercing both args via ```.Set``` 
 
 
 ### class Interval
@@ -50,18 +51,13 @@ We split the use cases of the built-in Range type as follows:
   - ```say 3 ~~ 1..12;```    #True   x1 <= a <= x2
   - ```say 2..3 ~~ 1..12;``` #True   x1 >= y1 && x2 <= y2
   - ```say 1..12 ~~ 2..3;``` #False  (y must contain x)
-- numeric cmp (<, <=, ==, !=, >, >=) work for Real op Rangy, Rangy op Real, Rangy op Rangy, when Range op Range, we check both endpoints to detect overlap in legal values so 1.0..2.0 < 2.0..3.0 False, 1.0..2.0 <= 2.0..3.0 True
-
-
-Set & cmp operations:
-
-
-compare (unlike Range, overlapping intervals are not ordered and yet not equal)
-```(1..2) cmp (3..4)``` #Less    x2 < y1
-```(1..2) cmp (2..4)``` #Nil     x2 !< y1                  !!    
-```(0..2) cmp (0..2)``` #Same    x1 == x2 && y1 == y2
-```(0..3) cmp (0..2)``` #Nil     x1 !> y2                  !!
-```(3..4) cmp (1..2)``` #More    x1 > y2
+- cmp works for Interval op Interval
+  - UNLIKE Range, overlapping intervals are not ordered and yet not equal
+  - ```(1..2) cmp (3..4)``` #Less    x2 < y1
+  - ```(1..2) cmp (2..4)``` #Nil     x2 !< y1                  !!    
+  - ```(0..2) cmp (0..2)``` #Same    x1 == x2 && y1 == y2
+  - ```(0..3) cmp (0..2)``` #Nil     x1 !> y2                  !!
+  - ```(3..4) cmp (1..2)``` #More    x1 > y2
 
 Set operations
 ```#say $i1.Set;```            #fails - in general Sets contain discrete items and Intervals are continuous
@@ -91,18 +87,17 @@ which leads to these design points:
 - ```.Range``` coerces to Range
 - ```subset Rangy of Any is export where * ~~ Range|Interval;```
 
+
+### Divide over zero -> disjoint multi-intervals
+
+[make ddt prerequisite (if it works for Jintervals
+
 ## TODOs
 ### Additional arithmetic operations
-- [ ] ~~ and cmp
-- [ ] Set operators
-- [ ] divide over zero -> disjoint multi-intervals
 - [ ] power (even / odd)
 - [ ] log / exp
 - [ ] trig
 - [ ] Newton
-### Comparison operators
-### Set operators
-
 
 ### Copyright
 copyright(c) 2023 Henley Cloud Consulting Ltd.

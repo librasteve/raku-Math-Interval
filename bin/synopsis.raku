@@ -36,40 +36,74 @@ my Interval $i2 .= new(2..^8);                  #2e0..7e0
 my Interval $i4 .= new(1,2);                    #1..2
 my Interval $i5 .= new($i1);                  #2e0..7e0
 
+say '---';
 say $i1, $i2, $i4, $i5;
 
-#say $i1.minmax;                                  #dies
 
-my @methods = <min max bounds infinite raku gist fmt Range>;
+my @methods = <min max minmax bounds infinite raku gist fmt Range>;
 { say "$^method makes: ", $i1."$^method"() } for @methods;
-#say $i1.Range.WHAT;
-#say $i1.WHAT;           #(Range) WRONG!!
-
-my $i7 = $i1 + $i2;
-dd $i7;
 
 my $i6 = $i1 + 4;
 say $i6;
 
-say $i1 ~~ Rangy;
+my $i7 = $i1 + $i2;
+say $i7;
 
 #say +$i1;    #fails
-say ($i1.Range + 3).Interval;
-
-#say $i1.Set;           #fails - in general Sets contain discrete items and Intervals are continuous
+#say $i1.Set;           #fails - in general raku Sets contain discrete items and Intervals are continuous
 say $i1.Range.Set;       #coerce to Range first and then use all Set operators
-say $r1.Set;
 
-
-say 2 ~~ $r2;
-say 0 ~~ $r2;
+my Interval $i8 .= new(4.5,6.5);
 
 say 2 ~~ $i2;
 say 0 ~~ $i2;
-
 say 2.4 ~~ $i1;
 say 3.5 ~~ $i1;
 
+
+
+say $i8 ~~ $i1;
+say $i1 ~~ $i8;
+
+say $i1 ~~ $i1;
+say $i2 ~~ $i1;
+say $i1 ~~ $i2;
+say $i8 ~~ $i1;
+say $i1 ~~ $i8;
+
+say $i1 cmp $i1;
+say $i1 cmp $i2;
+say $i2 cmp $i1;
+say $i1 cmp $i4;
+say $i4 cmp $i1;
+
+say $i1 (&) $i1;
+say $i1 (&) $i2;
+say $i2 (&) $i1;
+say $i2 ∩ $i4;
+say $i4 ∩ $i8;
+
+say $i2.abs;
+say $i2.width;
+
+
+
+
 #iamerejh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

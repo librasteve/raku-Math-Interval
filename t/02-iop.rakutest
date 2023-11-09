@@ -55,6 +55,38 @@ dies-ok { 2 - $i1 },                                'N-I dies-ok';  # Interval c
 ok ((3e0 * $i1) cmp (3e0..6e0)) ~~ Same,            'N*I';
 dies-ok { <4> / $i1 },                              'N/I dies-ok';  # Interval cannot be iterated / no .elems
 
+#iamerejh
+my Interval $i9 .= new(4.5,6.5);
 
+say 2 ~~ $i2;
+say 0 ~~ $i2;
+say 2.4 ~~ $i1;
+say 3.5 ~~ $i1;
+
+
+
+say $i8 ~~ $i1;
+say $i1 ~~ $i8;
+
+say $i1 ~~ $i1;
+say $i2 ~~ $i1;
+say $i1 ~~ $i2;
+say $i9 ~~ $i1;
+say $i1 ~~ $i9;
+
+say $i1 cmp $i1;
+say $i1 cmp $i2;
+say $i2 cmp $i1;
+say $i1 cmp $i4;
+say $i4 cmp $i1;
+
+say $i1 (&) $i1;
+say $i1 (&) $i2;
+say $i2 (&) $i1;
+say $i2 ∩ $i4;
+say $i4 ∩ $i8;
+
+say $i2.abs;
+say $i2.width;
 #done-testing
 

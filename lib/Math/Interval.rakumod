@@ -37,7 +37,7 @@ class Interval is Range is export {
     submethod TWEAK {
         my ($x1, $x2) = $!range.min, $!range.max;
 
-        #| enforce X2 > x1
+        #| enforce X2 >= x1
         die "x2 >= x1 is required for Interval endpoints" unless $x2 >= $x1;
 
         #| clean out cats ears
@@ -62,19 +62,29 @@ class Interval is Range is export {
 
     method Range( --> Range ) { $!range }
 
-    multi method ACCEPTS(Interval:D: Real $x ) {
+    multi method ACCEPTS(Interval:D: Real:D $x ) {
         $!range.ACCEPTS: $x
     }
 
-#    iamerejh - add ACCEPTS Range   [make ddt prerequisite (if it works for Jintervals
+    multi method ACCEPTS(Interval:D: Interval:D $x ) {
+        $!range.ACCEPTS: $x.Range
+    }
 
     method FALLBACK( $name ) {
         die "method .$name is not provided for class Interval"
+    }
 
+    method abs {
+        $!range.max
+    }
+
+    method width {
+        $!range.max - $!range.min
     }
 }
 
-## Interval op Interval
+## Basic Arithmetic Operators (+-*/)
+
 multi infix:<+>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     my (\x1, \x2) = ($x.min, $x.max);
     my (\y1, \y2) = ($y.min, $y.max);
@@ -104,7 +114,7 @@ multi infix:</>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
         my (\y1, \y2) = ($y.min, $y.max);
         my \ss = (y1.sign == y2.sign);      # same sign
 
-        given y1, y2  {
+        given       y1, y2  {
             # valid 
             when    !0, !0  &&  ss  { 1/y2 .. 1/y1 }
             when    !0,  0          { -Inf .. 1/y1 }
@@ -118,6 +128,55 @@ multi infix:</>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
 
     Interval.new: $x * inverse($y)
 }
+
+## Comparison Operators
+
+multi infix:<cmp>( Interval:D $x, Interval:D $y ) is export {
+    my (\x1, \x2) = ($x.min, $x.max);
+    my (\y1, \y2) = ($y.min, $y.max);
+
+    if x1==y1 && x2==y2 {
+        Same
+    } elsif x2 < y1 {
+        Less
+    } elsif y2 < x1 {
+        More
+    } else {                        # overlapping ranges are unordered and not equal
+        Nil
+    }
+}
+
+## Set Operators
+
+sub do-intersection( $x, $y ) {
+    my (\x1, \x2) = ($x.min, $x.max);
+    my (\y1, \y2) = ($y.min, $y.max);
+
+    if x1 > y2 || y1 > x2 {
+        ∅                           # the null Set
+    } else {
+        Interval.new: max(x1,y1) .. min(x2,y2)
+    }
+}
+multi infix:<(&)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
+multi infix:<∩>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
+
+
+sub do-union( $x, $y ) {
+    my (\x1, \x2) = ($x.min, $x.max);
+    my (\y1, \y2) = ($y.min, $y.max);
+
+    Interval.new: min(x1,y1) .. max(x2,y2)
+}
+multi infix:<(|)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
+multi infix:<∪>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
+
+
+
+
+
+
+
 
 
 
