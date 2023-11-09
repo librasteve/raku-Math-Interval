@@ -4,7 +4,7 @@
 use lib '../lib';
 use Test;
 
-plan 20;
+plan 34;
 
 use Math::Interval;
 
@@ -15,78 +15,62 @@ my Interval $i4 .= new: 0..4;
 my Interval $i5 .= new: -4..0;
 my Interval $i6 .= new: 3..*;
 my Interval $i8 .= new: '1'..'5';
+my Interval $i9 .= new: 4.5,6.5;
 
 ok $i1 ~~ Interval,                                 '.new';
 ok (($i1+ $i2) ~~ Interval),                        '~~';
 dies-ok { +$i1 },                                   '+I dies-ok';
-say $i1.Int;
-say $i1.Str;
 
-### Check Range op Range
-
+### Range op Range
 ok (($i1 + $i2) cmp (3..6)) ~~ Same,                'I+I';
 ok (($i2 - $i1) cmp (0..3)) ~~ Same,                'I-I';      #yes, really, check the viz
 ok (($i1 * $i2) cmp (2..8)) ~~ Same,                'I*I';
 ok (($i2 / $i1) cmp (1.0..4.0)) ~~ Same,            'I/I';
 
-#### Check Divide Corner Cases
-
+#### Divide Corner Cases
 dies-ok { $i2 / $i3 },                              'I/I dies-ok';
-
 ok (($i2 / $i4) cmp (0.5..Inf)) ~~ Same,            'I/I y1=0';
 ok (($i2 / $i5) cmp (-Inf..-0.5)) ~~ Same,          'I/I y2=0';
 ok (($i2 / $i6) cmp (0e0..<4/3>)) ~~ Same,          'I/I y2=*';
 
+### Str coerced
 ok (($i1 + $i8) cmp (2..7)) ~~ Same,                'I+I Str';
 
-#### Regression Tests
+### Regression Tests
 
-### Check Interval op Real
-
+#### Interval op Real
 ok (($i1 + 1) cmp (2..3)) ~~ Same,                  'I+N';
 ok (($i1 - 2) cmp (-1..0)) ~~ Same,                 'I-N';
 ok (($i1 * 3e0) cmp (3e0..6e0)) ~~ Same,            'I*N';
 ok (($i1 / <4>) cmp (0.25..0.5)) ~~ Same,           'I/N';
 
-#### Check Real op Interval
-
+### Real op Interval
 ok ((1 + $i1) cmp (2..3)) ~~ Same,                  'N+I';
 dies-ok { 2 - $i1 },                                'N-I dies-ok';  # Interval cannot be iterated / no .elems
 ok ((3e0 * $i1) cmp (3e0..6e0)) ~~ Same,            'N*I';
 dies-ok { <4> / $i1 },                              'N/I dies-ok';  # Interval cannot be iterated / no .elems
 
-#iamerejh
-my Interval $i9 .= new(4.5,6.5);
+### Containment
+ok 2 ~~ $i2,                                        'N~~I';
+ok $i1 ~~ $i8,                                      'I~~I';
+ok !($i8 ~~ $i1),                                   'I!~~I';
 
-say 2 ~~ $i2;
-say 0 ~~ $i2;
-say 2.4 ~~ $i1;
-say 3.5 ~~ $i1;
+### Comparison
+ok ($i1 cmp $i1) ~~ Same,                           'Same';
+ok ($i1 cmp $i9) ~~ Less,                           'Less';
+ok ($i9 cmp $i1) ~~ More,                           'More';
+ok !($i1 cmp $i4),                                  'Nil';
+ok !($i4 cmp $i1),                                  'Nil';
 
+### Set
+ok (($i1 (&) $i1) cmp (1..2)) ~~ Same,              '(&)';
+ok (($i1 (&) $i2) cmp ($i2 ∩ $i1)) ~~ Same,         '(&),∩';
+ok (($i2  ∩  $i4) cmp (2..4)) ~~ Same,              '∩';
+ok (($i4 (|) $i8) cmp ($i8 ∪ $i4)) ~~ Same,         '∩,(|)';
 
+### Other
+ok $i2.abs == 4,                                    '.abs';
+ok $i2.width == 2,                                  '.width';
 
-say $i8 ~~ $i1;
-say $i1 ~~ $i8;
-
-say $i1 ~~ $i1;
-say $i2 ~~ $i1;
-say $i1 ~~ $i2;
-say $i9 ~~ $i1;
-say $i1 ~~ $i9;
-
-say $i1 cmp $i1;
-say $i1 cmp $i2;
-say $i2 cmp $i1;
-say $i1 cmp $i4;
-say $i4 cmp $i1;
-
-say $i1 (&) $i1;
-say $i1 (&) $i2;
-say $i2 (&) $i1;
-say $i2 ∩ $i4;
-say $i4 ∩ $i8;
-
-say $i2.abs;
-say $i2.width;
 #done-testing
 
