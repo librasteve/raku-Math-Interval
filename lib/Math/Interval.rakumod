@@ -1,4 +1,4 @@
-unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
+unit module Math::Interval:ver<0.0.2>:auth<Steve Roe (librasteve@furnival.net)>;
 #viz. https://en.wikipedia.org/wiki/Interval_arithmetic
 #viz. https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html
 
