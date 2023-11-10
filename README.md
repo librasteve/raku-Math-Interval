@@ -1,28 +1,90 @@
 [![License: Artistic-2.0](https://img.shields.io/badge/License-Artistic%202.0-0298c3.svg)](https://opensource.org/licenses/Artistic-2.0)
 
-# Math::Interval
+## Math::Interval
 
 - viz. [https://en.wikipedia.org/wiki/Interval_arithmetic](https://en.wikipedia.org/wiki/Interval_arithmetic)
 - viz. [https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html)
 
-### A basic implementation of Interval Arithmetic using raku Ranges
-- No provision is (yet) made for Rounded Interval Arithmetic
-- No provision is (yet) made for complex intervals
-- Only a handful of all possible Interval operations (eg. log, exp, trig) 
-- No use of standard libs such as [MPRIA](https://www.gnu.org/software/mpria/) or [MPFI](https://metacpan.org/pod/Math::MPFI)
+### A elementary implementation of Interval Arithmetic using raku Ranges
 
-_Please feel free to submit any of these as a PR (see TODOs below)_
+Check out the Wikipedia page first - sub and div may confound your expectations:
 
+## Synopsis
+
+```perl6
+#!/usr/bin/env raku
+use lib '../lib';
+
+use Data::Dump::Tree;
+use Math::Interval;
+
+# Range-Range Operations use interval math
+say (1..2) + (2..4);        #3..6
+say (2..4) - (1..2);        #0..3  (yes - this is weird!)
+say (2..4) * (1..2);        #2..8
+say (2..4) / (1..2);        #1.0..4.0
+# strings work too! (must be numbers)
+say (1..2) + ('1'..'5');    #2..7
+# an Interval is returned
+ddt ((1..2) + (2..4)) ~~ Interval;  #True
+
+#| Interval is a child of class Range where endpoints are always Numeric
+#| No cats ears, not Positional, not Iterable, no .elems
+my Interval $i1 .= new(range => 2.5^..^8.5);    #3.5..7.5
+my Interval $i2 .= new(2..^8);                  #2e0..7e0
+my Interval $i4 .= new(1,2);                    #1..2
+my Interval $i5 .= new($i1);                  #2e0..7e0
+my Interval $i8 .= new(4.5,6.5);
+
+# '~~' checks if y contains x
+say   2 ~~ $i2;     #True
+say $i8 ~~ $i1;     #True
+say $i1 ~~ $i8;     #False
+
+# cmp checks Order
+say $i1 cmp $i1;    #Same
+say $i1 cmp $i4;    #More
+say $i4 cmp $i1;    #Less
+say $i1 cmp $i2;    #Nil   overlaps are not ordered
+say $i2 cmp $i1;    #Nil            ""
+
+# union ∪ [(|)] and intersection ∩ [(&)]
+say $i8  ∪  $i4;
+say $i4  ∩  $i8;    #∅ the null Set()
+
+# gotchas
+#say +$i1;          #fails - Interval has no .elems
+#say $i1.Set;       #fails - raku Sets must contain discrete items
+say $i1.Range.Set;  #coerce to Range to discretize an Interval
+
+## the -Ofun bit
+
+# a divisor that spans 0 produces a disjoint multi-interval
+my $j1 = (2..4)/(-2..4);
+ddt $j1;            #any(-Inf..-1.0, 0.5..Inf).Junction
+say 3 ~~ $j1;       #True
+
+# Junction[Interval] can still be used
+my $j2 = $j1 + 2;
+ddt $j2;            #any(-Inf..1.0, 2.5..Inf).Junction
+say 5 ~~ $j2;       #True
+
+# but this can only go so far...
+my $j3 = $j1 * (-2..4);
+ddt $j3;            #any(-Inf..Inf, -Inf..Inf).Junction
+say 3 ~~ $j3;       #True (but meaningless!)
+```
+
+## Explanation
 
 We split the use cases of the built-in Range type as follows:
 
 ### class Range
 
-- ```$x1..$x2 where $x1 & $x2 ~~ Any```
-- to generate lists of consecutive numbers or strings
-- to act as a matcher to check if a integer or string is within a
-- certain range
-- endpoints are Int with/out cats ears
+- Use case
+  - to generate lists of consecutive numbers or strings
+  - to act as a matcher to check if a Numeric or Stringy or Range is within a certain Range
+- endpoints with/out cats ears (±1)
 - does Positional, does Iterable
 - arithmetic +-*/ operators with scalars are distributed to endpoints like Junction with 2 elems, then each endpoint coerced to .Int
 - prefix '+' special cased to .elems
@@ -39,9 +101,9 @@ We split the use cases of the built-in Range type as follows:
 
 ### class Interval
 
-- ```$x1..$x2 where $x1 & $x2 ~~ Real && $x2 >= $x1```
-- to act as a matcher to check if a Numeric is within a certain range
-- endpoints are Real, no cats ears, x2 >= x1
+- Use case
+  - to act as a matcher to check if a Numeric or Interval is within a certain range
+- endpoints will ingest cats ears, x1 <= x2
 - not Iterable nor Positional
 - arithmetic +-*/ operators with scalars are distributed to endpoints like Junction with 2 elems
 - Rangy op Rangy --> Interval arithmetic +-*/ operators implemented
@@ -61,10 +123,9 @@ We split the use cases of the built-in Range type as follows:
 
 Set operations
 ```#say $i1.Set;```            #fails - in general Sets contain discrete items and Intervals are continuous
-```say $i1.Range.Set;```       #coerce to Range first and then use all Set operators (which auto-coerce that to Set)
+```say $i1.Range.Set;```       #coerce to Range first to use all Set operators (which discretizes the Interval)
 
-However, the following two Set operations are supported for Intervals:
-
+However, the following two Set operations are implemented for Intervals:
 
 intersection (&) ∩
 ```∅```    if x1 > y2 || y1 > x2
@@ -85,12 +146,14 @@ which leads to these design points:
   - rejects non-Real endpoints (eg. Str)
   - adjusts endpoints (±1) to strip cats ears
 - ```.Range``` coerces to Range
-- ```subset Rangy of Any is export where * ~~ Range|Interval;```
+- ```subset Rangy of Any where * ~~ Range|Interval;```
 
+- No provision is (yet) made for Rounded Interval Arithmetic
+- No provision is (yet) made for complex intervals
+- Only a handful of all possible Interval operations (eg. log, exp, trig)
+- No use of standard libs such as [MPRIA](https://www.gnu.org/software/mpria/) or [MPFI](https://metacpan.org/pod/Math::MPFI)
 
-### Divide over zero -> disjoint multi-intervals
-
-[make ddt prerequisite (if it works for Jintervals
+_Please feel free to submit any of these as a PR (see TODOs below)_
 
 ## TODOs
 ### Additional arithmetic operations

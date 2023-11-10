@@ -16,7 +16,7 @@ augment class Range {
     }
 }
 
-#| Interval is a sister of class Range where endpoints are always Numeric
+#| Interval is a child of class Range where endpoints are always Numeric
 #| No cats ears, not Positional, not Iterable, no .elems
 class Interval is Range is export {
 
@@ -85,8 +85,6 @@ my class Operation {
         my @y = ($y1, $y2) = ($!y.min, $!y.max);
 
         @!xXy = @x X* @y;
-
-        say @x, @y;
     }
 
     #| make inverse, ie. 1/[y1..y2]
@@ -157,7 +155,6 @@ multi infix:<+>( Rangy:D $x, Rangy:D $y ) is export {
 }
 
 multi infix:<->( Rangy:D $x, Rangy:D $y ) is export {
-    say 'yo';
     Operation.new(:$x, :$y).sub
 }
 

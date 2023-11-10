@@ -1,13 +1,15 @@
 {
   "name": "Math::Interval",
-  "description": "A noddy implementation of Interval Arithmetic using raku Ranges",
+  "description": "An elementary implementation of Interval Arithmetic using raku Ranges",
   "version": "0.0.1",
   "perl": "6.d",
   "authors": [
     "librasteve"
   ],
   "auth": "zef:librasteve",
-  "depends": [],
+  "depends": [
+    "Data::Dump::Tree"
+  ],
   "build-depends": [],
   "test-depends": [],
   "provides": {

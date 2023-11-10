@@ -1,122 +1,68 @@
 #!/usr/bin/env raku
-
 use lib '../lib';
+
 use Data::Dump::Tree;
 use Math::Interval;
 
-my $r1 = 1..2;
-my $r2 = 2..4;
-my $r3 = -2..4;
-my $r4 = 0..4;
-my $r5 = -4..0;
-my $r6 = 3..*;
-my $r7 = 0..0;
-my $r8 = '1'..'5';
+# Range-Range Operations use interval math
+say (1..2) + (2..4);        #3..6
+say (2..4) - (1..2);        #0..3  (yes - this is weird!)
+say (2..4) * (1..2);        #2..8
+say (2..4) / (1..2);        #1.0..4.0
+# strings work too! (must be numbers)
+say (1..2) + ('1'..'5');    #2..7
+# an Interval is returned
+ddt ((1..2) + (2..4)) ~~ Interval;  #True
 
-# Range op Range for +-*/
-say $r1 + $r2;    #3..6
-say $r2 - $r1;    #0.3.
-say $r2 * $r1;    #2..8
-say $r2 / $r1;    #1.0..4.0
-
-# some divide errors and corner cases
-#say $r2 / $r3;   # dies ($r3 spans 0)
-say $r2 / $r4;    #0.5..Inf
-say $r2 / $r5;    #-Inf..-0.5
-say $r2 / $r6;    #0e0..<4/3>
-say $r2 / $r7;    #<1/0>..<1/0>
-
-# numeric strings work too!
-say $r1 + $r8;    #2..7
-
-#cat ears and whatever and whatever codes are collapsed
-
+#| Interval is a child of class Range where endpoints are always Numeric
+#| No cats ears, not Positional, not Iterable, no .elems
 my Interval $i1 .= new(range => 2.5^..^8.5);    #3.5..7.5
 my Interval $i2 .= new(2..^8);                  #2e0..7e0
-#my Interval $i3 .= new('a'..'z');               #dies
 my Interval $i4 .= new(1,2);                    #1..2
 my Interval $i5 .= new($i1);                  #2e0..7e0
-
-say $r1, $r2, $r3, $r4, $r5;
-say $i1, $i2, $i4, $i5;
-say '---';
-#`[
-my @methods = <min max minmax bounds infinite raku gist fmt Range>;
-{ say "$^method makes: ", $i1."$^method"() } for @methods;
-
-my $i6 = $i1 + 4;
-say $i6;
-
-my $i7 = $i1 + $i2;
-say $i7;
-
-#say +$i1;    #fails
-#say $i1.Set;           #fails - in general raku Sets contain discrete items and Intervals are continuous
-say $i1.Range.Set;       #coerce to Range first and then use all Set operators
-
 my Interval $i8 .= new(4.5,6.5);
 
-say 2 ~~ $i2;
-say 0 ~~ $i2;
-say 2.4 ~~ $i1;
-say 3.5 ~~ $i1;
+# '~~' checks if y contains x
+say   2 ~~ $i2;     #True
+say $i8 ~~ $i1;     #True
+say $i1 ~~ $i8;     #False
 
-say $i8 ~~ $i1;
-say $i1 ~~ $i8;
+# cmp checks Order
+say $i1 cmp $i1;    #Same
+say $i1 cmp $i4;    #More
+say $i4 cmp $i1;    #Less
+say $i1 cmp $i2;    #Nil   overlaps are not ordered
+say $i2 cmp $i1;    #Nil            ""
 
-say $i1 ~~ $i1;
-say $i2 ~~ $i1;
-say $i1 ~~ $i2;
-say $i8 ~~ $i1;
-say $i1 ~~ $i8;
-
-say $i1 cmp $i1;
-say $i1 cmp $i2;
-say $i2 cmp $i1;
-say $i1 cmp $i4;
-say $i4 cmp $i1;
-
-say $i1 (&) $i1;
-say $i1 (&) $i2;
-say $i2 (&) $i1;
-say $i2  ∩  $i4;
-say $i4  ∩  $i8;
-
-say $i4 (|) $i8;
+# union ∪ [(|)] and intersection ∩ [(&)]
 say $i8  ∪  $i4;
+say $i4  ∩  $i8;    #∅ the null Set()
 
+# gotchas
+#say +$i1;          #fails - Interval has no .elems
+#say $i1.Set;       #fails - raku Sets must contain discrete items
+say $i1.Range.Set;  #coerce to Range to discretize an Interval
 
-say $i2.abs;
-say $i2.width;
-#]
+## the -Ofun bit
 
-# disjoint
-my $j1 = $r2/$r3;
-ddt $j1;
-say $j1 ~~ Interval;
+# division by an Intervals that spans 0 gives a disjoint multi-interval
+my $j1 = (2..4)/(-2..4);
+ddt $j1;            #any(-Inf..-1.0, 0.5..Inf).Junction
+say 3 ~~ $j1;       #True  the result contains 3
 
-sub mid( $r ) { ($r.min + $r.max) /2 }
-
-say $r3;
-say my $m1 = mid($r1);
-say my $m2 = mid($r2);
-say my $m3 = mid($r3);
-say my $mx = $m2/$m3;
-
-say $mx ~~ $j1;
-
+# Junction[Interval] can still be used
 my $j2 = $j1 + 2;
-ddt $j2;     #any(-Inf..1.0, 2.5..Inf).Junction
-say $mx+2 ~~ $j2;
+ddt $j2;            #any(-Inf..1.0, 2.5..Inf).Junction
+say 5 ~~ $j2;
+
+# but this can only go so far...
+my $j3 = $j1 * (-2..4);
+ddt $j3;            #any(-Inf..Inf, -Inf..Inf).Junction
+say 3 ~~ $j3;
 
 
 
-my $j3 = $j1 * $r3;
-ddt $j3;      #any(-Inf..Inf, -Inf..Inf).Junction
-say $m1 ~~ $j3;
 
-
-#iamerejh
 
 
 
