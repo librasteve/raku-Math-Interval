@@ -85,6 +85,8 @@ my class Operation {
         my @y = ($y1, $y2) = ($!y.min, $!y.max);
 
         @!xXy = @x X* @y;
+
+        say @x, @y;
     }
 
     #| make inverse, ie. 1/[y1..y2]
@@ -155,6 +157,7 @@ multi infix:<+>( Rangy:D $x, Rangy:D $y ) is export {
 }
 
 multi infix:<->( Rangy:D $x, Rangy:D $y ) is export {
+    say 'yo';
     Operation.new(:$x, :$y).sub
 }
 
