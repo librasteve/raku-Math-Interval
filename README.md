@@ -26,31 +26,30 @@ say (2..4) / (1..2);        #1.0..4.0
 # strings work too! (must be numbers)
 say (1..2) + ('1'..'5');    #2..7
 # an Interval is returned
-ddt ((1..2) + (2..4)) ~~ Interval;  #True
+say ((1..2) + (2..4)) ~~ Interval;  #True
 
 #| Interval is a child of class Range where endpoints are always Numeric
 #| No cats ears, not Positional, not Iterable, no .elems
 my Interval $i1 .= new(range => 2.5^..^8.5);    #3.5..7.5
 my Interval $i2 .= new(2..^8);                  #2e0..7e0
-my Interval $i4 .= new(1,2);                    #1..2
-my Interval $i5 .= new($i1);                  #2e0..7e0
-my Interval $i8 .= new(4.5,6.5);
+my Interval $i3 .= new(1,2);                    #1..2
+my Interval $i4 .= new(4.5,6.5);                #4.5..6.5
 
 # '~~' checks if y contains x
 say   2 ~~ $i2;     #True
-say $i8 ~~ $i1;     #True
-say $i1 ~~ $i8;     #False
+say $i4 ~~ $i1;     #True
+say $i1 ~~ $i4;     #False
 
 # cmp checks Order
 say $i1 cmp $i1;    #Same
-say $i1 cmp $i4;    #More
-say $i4 cmp $i1;    #Less
+say $i1 cmp $i3;    #More
+say $i3 cmp $i1;    #Less
 say $i1 cmp $i2;    #Nil   overlaps are not ordered
 say $i2 cmp $i1;    #Nil            ""
 
 # union ∪ [(|)] and intersection ∩ [(&)]
-say $i8  ∪  $i4;
-say $i4  ∩  $i8;    #∅ the null Set()
+say $i4  ∪  $i3;
+say $i3  ∩  $i4;    #∅ the null Set()
 
 # gotchas
 #say +$i1;          #fails - Interval has no .elems
