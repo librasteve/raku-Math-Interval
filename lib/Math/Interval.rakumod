@@ -77,14 +77,15 @@ my class Operation {
 
     has $.x;
     has $.y;
-    has @!xXy;      #cross-prod, ie. x0*y0,x1*y0...
+    has @!xXy;
 
     submethod TWEAK {
-        #| load xy terms
-        my @x = ($x1, $x2) = ($!x.min, $!x.max);
-        my @y = ($y1, $y2) = ($!y.min, $!y.max);
+        #| load xy terms via the scalars
+        ($x1, $x2) = ($!x.min, $!x.max);
+        ($y1, $y2) = ($!y.min, $!y.max);
 
-        @!xXy = @x X* @y;
+        #| make cross product, ie. x0*y0,x1*y0...
+        @!xXy = (x1, x2) X* (y1, y2);
     }
 
     #| make inverse, ie. 1/[y1..y2]
