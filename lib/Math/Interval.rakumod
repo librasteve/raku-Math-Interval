@@ -2,14 +2,12 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 #viz. https://en.wikipedia.org/wiki/Interval_arithmetic
 #viz. https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html
 
-use Data::Dump::Tree;
-
 class Interval {...}
 
-#| Rangy is a convenience for multis to cover both Range & Interval
+#| Rangy helps multi infix operators to take both Range & Interval types
 subset Rangy of Any is export where * ~~ Range|Interval;
 
-#| Add method to allow coercion of Range to Interval
+#| Add method for coercion of Range to Interval
 use MONKEY-TYPING;
 
 augment class Range {
@@ -19,12 +17,7 @@ augment class Range {
 }
 
 #| Interval is a sister of class Range where endpoints are always Numeric
-#|  [in anticipation of Rounded Interval Arithmetic]
-#|  [https://en.wikipedia.org/wiki/Interval_arithmetic#Rounded_interval_arithmetic]
 #| No cats ears, not Positional, not Iterable, no .elems
-#|
-#| All Interval methods may work with Junctions of Intervals (tbd)
-#|
 class Interval is Range is export {
 
     has Range $!range is built
@@ -33,8 +26,7 @@ class Interval is Range is export {
     submethod TWEAK {
         my ($x1, $x2) = $!range.min, $!range.max;
 
-        #| enforce X2 >= x1
-        die "x2 >= x1 is required for Interval endpoints" unless $x2 >= $x1;
+        die "x1 <= x2 is required for Interval endpoints" unless $x1 <= $x2;
 
         #| clean out cats ears
         $x1 += $!range.excludes-min;                            #\ True=1/
@@ -79,44 +71,33 @@ class Interval is Range is export {
     }
 }
 
-## Basic Arithmetic Operators (+-*/)
+my class Operation {
+    #| initialize xy terms by binding to scalar args
+    my (\x1, \x2, \y1, \y2) := my ($x1, $x2, $y1, $y2);
 
-multi infix:<+>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
-    my (\x1, \x2) = ($x.min, $x.max);
-    my (\y1, \y2) = ($y.min, $y.max);
+    has $.x;
+    has $.y;
+    has @!xXy;      #cross-prod, ie. x0*y0,x1*y0...
 
-    Interval.new: (x1 + y1) .. (x2 + y2)
-}
+    submethod TWEAK {
+        #| load xy terms
+        my @x = ($x1, $x2) = ($!x.min, $!x.max);
+        my @y = ($y1, $y2) = ($!y.min, $!y.max);
 
-multi infix:<->( Rangy:D $x, Rangy:D $y --> Interval ) is export {
-    my (\x1, \x2) = ($x.min, $x.max);
-    my (\y1, \y2) = ($y.min, $y.max);
+        @!xXy = @x X* @y;
+    }
 
-    Interval.new: (x1 - y2) .. (x2 - y1)
-}
-
-multi infix:<*>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
-    my @x = ($x.min, $x.max);
-    my @y = ($y.min, $y.max);
-
-    my @prods = @x X* @y;                   # make cross-prod, ie. x0*y0,x1*y0...
-
-    Interval.new: @prods.min .. @prods.max
-}
-
-multi infix:</>( Rangy:D $x, Rangy:D $y ) is export {
-
-    sub inverse($y) {                       # make inverse, ie. 1/[y1..y2] 
-        my (\y1, \y2) = ($y.min, $y.max);
+    #| make inverse, ie. 1/[y1..y2]
+    sub inverse($y) {
         my \ss = (y1.sign == y2.sign);      # same sign
 
         given       y1, y2  {
-            # valid 
-            when    !0, !0  &&  ss  { 1/y2 .. 1/y1 }
-            when    !0,  0          { -Inf .. 1/y1 }
-            when     0, !0          { 1/y2 .. Inf  }
+            # continuous
+            when    !0, !0  &&  ss  { Interval.new: 1/y2 .. 1/y1 }
+            when    !0,  0          { Interval.new: -Inf .. 1/y1 }
+            when     0, !0          { Interval.new: 1/y2 .. Inf  }
 
-            # disjoint multi-interval
+            # disjoint
             when    !0, !0  && !ss  {
                 say "divisor contains 0, returning a multi Interval Junction";
                 Interval.new(-Inf..1/y1) | Interval.new(1/y2..Inf)
@@ -127,59 +108,81 @@ multi infix:</>( Rangy:D $x, Rangy:D $y ) is export {
         }
     }
 
-    Interval.new: $x * inverse($y)
+    method add {
+        Interval.new: (x1 + y1) .. (x2 + y2)
+    }
+
+    method sub {
+        Interval.new: (x1 - y2) .. (x2 - y1)
+    }
+
+    method mul {
+        Interval.new: @!xXy.min .. @!xXy.max
+    }
+
+    method div {
+        Interval.new: $!x * inverse($!y)
+    }
+
+    method union {
+        Interval.new: min(x1,y1) .. max(x2,y2)
+    }
+
+    method intersection {
+        if x1 > y2 || y1 > x2 {
+            ∅  # the null Set
+        } else {
+            Interval.new: max(x1,y1) .. min(x2,y2)
+        }
+    }
+
+    method cmp {
+        if x1==y1 && x2==y2 {
+            Same
+        } elsif x2 < y1 {
+            Less
+        } elsif y2 < x1 {
+            More
+        } else {   # overlaps are unordered and not equal
+            Nil
+        }
+    }
 }
 
-## Comparison Operators
+## Basic Arithmetic Operators (+-*/)
+multi infix:<+>( Rangy:D $x, Rangy:D $y ) is export {
+    Operation.new(:$x, :$y).add
+}
 
-multi infix:<cmp>( Interval:D $x, Interval:D $y ) is export {
-    my (\x1, \x2) = ($x.min, $x.max);
-    my (\y1, \y2) = ($y.min, $y.max);
+multi infix:<->( Rangy:D $x, Rangy:D $y ) is export {
+    Operation.new(:$x, :$y).sub
+}
 
-    if x1==y1 && x2==y2 {
-        Same
-    } elsif x2 < y1 {
-        Less
-    } elsif y2 < x1 {
-        More
-    } else {                        # overlapping ranges are unordered and not equal
-        Nil
-    }
+multi infix:<*>( Rangy:D $x, Rangy:D $y ) is export {
+    Operation.new(:$x, :$y).mul
+}
+
+multi infix:</>( Rangy:D $x, Rangy:D $y ) is export {
+    Operation.new(:$x, :$y).div
 }
 
 ## Set Operators
-
-sub do-intersection( $x, $y ) {
-    my (\x1, \x2) = ($x.min, $x.max);
-    my (\y1, \y2) = ($y.min, $y.max);
-
-    if x1 > y2 || y1 > x2 {
-        ∅                           # the null Set
-    } else {
-        Interval.new: max(x1,y1) .. min(x2,y2)
-    }
+multi infix:<(&)>( Interval:D $x, Interval:D $y ) is export {
+    Operation.new(:$x, :$y).intersection
+}
+multi infix:<∩>(   Interval:D $x, Interval:D $y ) is export {
+    Operation.new(:$x, :$y).intersection
 }
 
-multi infix:<(&)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
-multi infix:<∩>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
-
-
-sub do-union( $x, $y ) {
-    my (\x1, \x2) = ($x.min, $x.max);
-    my (\y1, \y2) = ($y.min, $y.max);
-
-    Interval.new: min(x1,y1) .. max(x2,y2)
+multi infix:<(|)>( Interval:D $x, Interval:D $y ) is export {
+    Operation.new(:$x, :$y).union
+}
+multi infix:<∪>(   Interval:D $x, Interval:D $y ) is export {
+    Operation.new(:$x, :$y).union
 }
 
-multi infix:<(|)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
-multi infix:<∪>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
-
-
-
-
-
-
-
-
-
+## Comparison Operators
+multi infix:<cmp>( Interval:D $x, Interval:D $y ) is export {
+    Operation.new(:$x, :$y).cmp
+}
 
