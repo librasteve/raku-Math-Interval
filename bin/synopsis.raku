@@ -1,6 +1,7 @@
 #!/usr/bin/env raku
 
 use lib '../lib';
+use Data::Dump::Tree;
 use Math::Interval;
 
 my $r1 = 1..2;
@@ -36,10 +37,10 @@ my Interval $i2 .= new(2..^8);                  #2e0..7e0
 my Interval $i4 .= new(1,2);                    #1..2
 my Interval $i5 .= new($i1);                  #2e0..7e0
 
-say '---';
+say $r1, $r2, $r3, $r4, $r5;
 say $i1, $i2, $i4, $i5;
-
-
+say '---';
+#`[
 my @methods = <min max minmax bounds infinite raku gist fmt Range>;
 { say "$^method makes: ", $i1."$^method"() } for @methods;
 
@@ -60,8 +61,6 @@ say 0 ~~ $i2;
 say 2.4 ~~ $i1;
 say 3.5 ~~ $i1;
 
-
-
 say $i8 ~~ $i1;
 say $i1 ~~ $i8;
 
@@ -80,13 +79,41 @@ say $i4 cmp $i1;
 say $i1 (&) $i1;
 say $i1 (&) $i2;
 say $i2 (&) $i1;
-say $i2 ∩ $i4;
-say $i4 ∩ $i8;
+say $i2  ∩  $i4;
+say $i4  ∩  $i8;
+
+say $i4 (|) $i8;
+say $i8  ∪  $i4;
+
 
 say $i2.abs;
 say $i2.width;
+#]
+
+# disjoint
+my $j1 = $r2/$r3;
+ddt $j1;
+say $j1 ~~ Interval;
+
+sub mid( $r ) { ($r.min + $r.max) /2 }
+
+say $r3;
+say my $m1 = mid($r1);
+say my $m2 = mid($r2);
+say my $m3 = mid($r3);
+say my $mx = $m2/$m3;
+
+say $mx ~~ $j1;
+
+my $j2 = $j1 + 2;
+ddt $j2;     #any(-Inf..1.0, 2.5..Inf).Junction
+say $mx+2 ~~ $j2;
 
 
+
+my $j3 = $j1 * $r3;
+ddt $j3;      #any(-Inf..Inf, -Inf..Inf).Junction
+say $m1 ~~ $j3;
 
 
 #iamerejh

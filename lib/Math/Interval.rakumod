@@ -2,15 +2,11 @@ unit module Math::Interval:ver<0.0.1>:auth<Steve Roe (librasteve@furnival.net)>;
 #viz. https://en.wikipedia.org/wiki/Interval_arithmetic
 #viz. https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node45.html
 
-##  A noddy implementation of Interval Arithmetic using raku Ranges
-### No provision is made for Rounded Interval Arithmetic
-### No provision is made for [disjoint] multi-intervals
-### No provision is made for complex intervals
-
+use Data::Dump::Tree;
 
 class Interval {...}
 
-#| Make a wider class "Rangy" for multis to cover both Range & Interval
+#| Rangy is a convenience for multis to cover both Range & Interval
 subset Rangy of Any is export where * ~~ Range|Interval;
 
 #| Add method to allow coercion of Range to Interval
@@ -108,7 +104,7 @@ multi infix:<*>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
     Interval.new: @prods.min .. @prods.max
 }
 
-multi infix:</>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
+multi infix:</>( Rangy:D $x, Rangy:D $y ) is export {
 
     sub inverse($y) {                       # make inverse, ie. 1/[y1..y2] 
         my (\y1, \y2) = ($y.min, $y.max);
@@ -120,9 +116,14 @@ multi infix:</>( Rangy:D $x, Rangy:D $y --> Interval ) is export {
             when    !0,  0          { -Inf .. 1/y1 }
             when     0, !0          { 1/y2 .. Inf  }
 
-            # error
-            when     0,  0          { die "Divisor cannot be Range 0..0. Divide by zero attempt." } 
-            when    !0, !0  && !ss  { die "Divisor cannot be Range that spans 0 [multi-intervals are not supported]." }
+            # disjoint multi-interval
+            when    !0, !0  && !ss  {
+                say "divisor contains 0, returning a multi Interval Junction";
+                Interval.new(-Inf..1/y1) | Interval.new(1/y2..Inf)
+            }
+
+            # div 0 error
+            when     0,  0          { die "divisor cannot be 0..0. Divide by zero attempt." }
         }
     }
 
@@ -158,6 +159,7 @@ sub do-intersection( $x, $y ) {
         Interval.new: max(x1,y1) .. min(x2,y2)
     }
 }
+
 multi infix:<(&)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
 multi infix:<∩>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
 
@@ -168,6 +170,7 @@ sub do-union( $x, $y ) {
 
     Interval.new: min(x1,y1) .. max(x2,y2)
 }
+
 multi infix:<(|)>( Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
 multi infix:<∪>(   Interval:D $x, Interval:D $y ) is export {do-intersection( $x, $y )}
 
