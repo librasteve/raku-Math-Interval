@@ -99,7 +99,7 @@ my class Operation {
 
             # disjoint
             when    !0, !0  && !ss  {
-                say "divisor contains 0, returning a multi Interval Junction";
+                warn "divisor contains 0, returning a multi Interval Junction";
                 Interval.new(-Inf..1/y1) | Interval.new(1/y2..Inf)
             }
 
