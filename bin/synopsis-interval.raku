@@ -59,6 +59,8 @@ my $j3 = $j1 * (-2..4);
 ddt $j3;            #any(-Inf..Inf, -Inf..Inf).Junction
 say 3 ~~ $j3;
 
+say ($i1,$i2,$i3,$i4).sort;
+
 
 
 
