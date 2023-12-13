@@ -125,15 +125,20 @@ my class Operation {
         Interval.new: $!x * inverse($!y)
     }
 
-    method union {
-        Interval.new: min(x1,y1) .. max(x2,y2)
-    }
-
     method intersection {
         if x1 > y2 || y1 > x2 {
             ∅  # the null Set
         } else {
             Interval.new: max(x1,y1) .. min(x2,y2)
+        }
+    }
+
+    method union {
+        if Operation.new(:$!x, :$!y).intersection {
+            Interval.new: min(x1,y1) .. max(x2,y2)
+        } else {
+            warn "union of non-intersecting Intervals, returning a multi Interval Junction";
+            $!x | $!y
         }
     }
 

@@ -21,6 +21,10 @@ my Interval $i2 .= new(2..^8);                  #2e0..7e0
 my Interval $i3 .= new(1,2);                    #1..2
 my Interval $i4 .= new(4.5,6.5);                #4.5..6.5
 
+say $i2  ∪  $i3;
+say $i4  ∪  $i3;
+die;
+
 # '~~' checks if y contains x
 say   2 ~~ $i2;     #True
 say $i4 ~~ $i1;     #True
@@ -34,8 +38,8 @@ say $i1 cmp $i2;    #Nil   overlaps are not ordered
 say $i2 cmp $i1;    #Nil            ""
 
 # union ∪ [(|)] and intersection ∩ [(&)]
-say $i4  ∪  $i3;
 say $i3  ∩  $i4;    #∅ the null Set()
+say $i4  ∪  $i3;    #union returns a disjoint multi-interval unless args intersect
 
 # gotchas
 #say +$i1;          #fails - Interval has no .elems
