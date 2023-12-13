@@ -1,7 +1,7 @@
 {
   "name": "Math::Interval",
   "description": "An elementary implementation of Interval Arithmetic using raku Ranges",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "perl": "6.d",
   "authors": [
     "librasteve"
