@@ -47,9 +47,9 @@ say $i3 cmp $i1;    #Less
 say $i1 cmp $i2;    #Nil   overlaps are not ordered
 say $i2 cmp $i1;    #Nil            ""
 
-# union ∪ [(|)] and intersection ∩ [(&)]
-say $i4  ∪  $i3;
+# intersection ∩ [(&)] and union ∪ [(|)] 
 say $i3  ∩  $i4;    #∅ the null Set()
+say $i4  ∪  $i3;    #union returns a disjoint multi-interval unless args intersect
 
 # gotchas
 #say +$i1;          #fails - Interval has no .elems
